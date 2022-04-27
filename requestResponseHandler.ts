@@ -80,7 +80,6 @@ export default class QueueITRequestResponseHandler {
                 this.httpContextProvider
             );
 
-            console.log("validationResult.doRedirect(): ", validationResult.doRedirect());
             if (validationResult.doRedirect()) {
                 if (validationResult.isAjaxResult) {
                     const response = new Response();
