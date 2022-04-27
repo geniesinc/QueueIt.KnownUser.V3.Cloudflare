@@ -15,6 +15,9 @@ addEventListener('fetch', (event: any) => {
 
 const handleRequest = async function (event: any) {
   const {request} = event;
+  if (!request.url.includes("reserveNFT") && request.url.includes("staging")) {
+    return null;
+  }
   const handler = new QueueITRequestResponseHandler(QUEUEIT_CUSTOMERID, QUEUEIT_SECRETKEY, READ_REQUEST_BODY)
   let queueitResponse = await handler.onClientRequest(request);
   if (queueitResponse) {
