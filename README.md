@@ -74,3 +74,6 @@ cloudflare distribution.
 
 > Please contact [queue-it support](https://support.queue-it.com/hc/en-us) for further information and instructions.
 
+
+## To build locally
+Create a `.env.prod` file at the root of the repo with the variable `QUEUE_IT_SECRET_KEY` which is the known user secret. This can be retrievd from a Waiting Room > Deployment.  

@@ -1,6 +1,7 @@
 'use strict'
+require("dotenv").config();
 const QUEUEIT_CUSTOMERID = "genies";
-const QUEUEIT_SECRETKEY = "secret";
+const QUEUEIT_SECRETKEY = process.env.QUEUE_IT_SECRET_KEY ?? "";
 
 // Set to true, if you have any trigger(s) containing experimental 'RequestBody' condition.
 const READ_REQUEST_BODY = false;
@@ -18,10 +19,10 @@ const handleRequest = async function (event: any) {
   const handler = new QueueITRequestResponseHandler(QUEUEIT_CUSTOMERID, QUEUEIT_SECRETKEY, READ_REQUEST_BODY);
 
   // exit early for other apis
-  if (!request.url.includes("reserveNFT")) {
-    const response = await fetch(request);
-    return await handler.onClientResponse(response);
-  }
+  // if (!request.url.includes("reserveNFT")) {
+  //   const response = await fetch(request);
+  //   return await handler.onClientResponse(response);
+  // }
 
   let queueitResponse = await handler.onClientRequest(request);
   if (queueitResponse) {
