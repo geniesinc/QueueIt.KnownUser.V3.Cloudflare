@@ -75,5 +75,7 @@ cloudflare distribution.
 > Please contact [queue-it support](https://support.queue-it.com/hc/en-us) for further information and instructions.
 
 
-## To build locally
-Create a `.env.prod` file at the root of the repo with the variable `QUEUE_IT_SECRET_KEY` which is the known user secret. This can be retrievd from a Waiting Room > Deployment.  
+## Environment Variables
+Set the env variable `QUEUE_IT_SECRET_KEY` in the cloudflare worker which is the known user secret. This can be retrievd from a Waiting Room > Deployment.  
+Set the env variable `BYPASS_STAGING` to `'true'` to bypass the validation on staging.  
+Set the env variable `BYPASS_PROD` to `'true'` to bypass the validation on prod.  
