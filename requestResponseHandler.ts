@@ -82,7 +82,7 @@ export default class QueueITRequestResponseHandler {
 
                 // allow validation if timestamp is within the hour
                 if (checkEndpoint(validationResult.redirectUrl, queueitToken)) {
-                    return this.redirectValid(requestUrlWithoutToken);
+                    return null;
                 }
 
                 if (validationResult.isAjaxResult) {
@@ -106,7 +106,10 @@ export default class QueueITRequestResponseHandler {
             } else {
                 // Request can continue - we remove queueittoken form querystring parameter to avoid sharing of user specific token
                 if (requestUrl !== requestUrlWithoutToken && validationResult.actionType === 'Queue') {
-                    return this.redirectValid(requestUrlWithoutToken);
+                    let response = new Response(null, {status: 302});
+                    response.headers.set('Location', requestUrlWithoutToken);
+                    this.sendNoCacheHeaders = true;
+                    return response;
                 } else {
                     // lets caller decides the next step
                     return null;
@@ -159,13 +162,6 @@ export default class QueueITRequestResponseHandler {
         this.sendNoCacheHeaders = true;
         addNoCacheHeaders(responseResult);
         return responseResult;
-    }
-
-    async redirectValid(requestUrlWithoutToken: string) {
-        let response = new Response(null, {status: 302});
-        response.headers.set('Location', requestUrlWithoutToken);
-        this.sendNoCacheHeaders = true;
-        return response;
     }
 
 }
