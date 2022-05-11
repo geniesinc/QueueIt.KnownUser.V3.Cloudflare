@@ -78,13 +78,12 @@ export default class QueueITRequestResponseHandler {
                 this.httpContextProvider
             );
 
+            // allow validation if timestamp is within the hour
+            if (checkEndpoint(validationResult.redirectUrl, queueitToken)) {
+                return null;
+            }
+
             if (validationResult.doRedirect()) {
-
-                // allow validation if timestamp is within the hour
-                if (checkEndpoint(validationResult.redirectUrl, queueitToken)) {
-                    return null;
-                }
-
                 if (validationResult.isAjaxResult) {
                     const response = new Response();
                     const headerKey = validationResult.getAjaxQueueRedirectHeaderKey();
@@ -210,13 +209,20 @@ function checkEndpoint(url: string, queueitToken: string): boolean {
             return {...acc, [key]: value}
         }) as any;
         
+
+        // parse ts from token
+        const tokenTs = queueitToken.match(/(ts_\d+)/);
+        if (!tokenTs) {
+            return false;
+        }
+        const ts = tokenTs[0].split('_')[1];
     
         // timestamp error and we have the same queueitToken from the request 
         // and if it has been less than 1 hour from expiration
         if (
             base === TIMESTAMP_ERROR_URL && 
             paramsMap[KnownUser.QueueITTokenKey] === queueitToken &&
-            lessThanOneHourAgo(parseInt(paramsMap.ts))
+            lessThanOneHourAgo(parseInt(ts))
         ) {
             
             return true;
@@ -235,8 +241,8 @@ function checkEndpoint(url: string, queueitToken: string): boolean {
  */
 function lessThanOneHourAgo(date: number): boolean {
     const HOUR = 1000 * 60 * 60;
-    const oneHourAgo = Date.now() - HOUR;
+    const oneHourAgo = Math.floor(Date.now() / 1000) - HOUR;
 
-    return date < oneHourAgo;
+    return date > oneHourAgo;
 }
 
