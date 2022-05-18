@@ -87,6 +87,10 @@ export default class QueueITRequestResponseHandler {
 
                 const variationValue = JSON.parse(editionQueueEnabledVariationValue);
                 const editionFlowId = request.payload.variables.input.editionFlowId;
+                if (!editionFlowId) {
+                    return this.redirectNull();
+                }
+                
                 const isEditionIncluded = variationValue.includes(editionFlowId);
 
                 if (!(flags.isQueueActive && isEditionIncluded)) {
