@@ -4,6 +4,7 @@ const tsify = require("tsify");
 const jsonModify = require('gulp-json-modify');
 const vinylSource = require('vinyl-source-stream');
 const browserify = require('browserify');
+const babelify = require('babelify');
 const tar = require('gulp-tar');
 const gzip = require('gulp-gzip');
 
@@ -16,6 +17,12 @@ function bundle(){
             packageCache: {},
         })
             .plugin(tsify)
+            .transform(babelify, {
+                global: true,              
+                sourceMaps: true, 
+                ignore: [/\/node_modules\/(?!yaml\/)/],  
+                presets: ["@babel/preset-env"]
+            })
             .bundle()
             .pipe(vinylSource("queueitknownuser.bundle.js"))
             .pipe(dest("./dist"));

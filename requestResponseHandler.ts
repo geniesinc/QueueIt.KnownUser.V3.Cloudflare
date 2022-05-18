@@ -6,11 +6,15 @@ const ID_TOKEN_HEADER_NAME = 'id-token';
 declare var IntegrationConfigKV: string;
 declare var Response: any;
 
-import {KnownUser, Utils} from 'queueit-knownuser'
-import CloudflareHttpContextProvider from './contextProvider'
+import {KnownUser, Utils} from 'queueit-knownuser';
+import CloudflareHttpContextProvider from './contextProvider';
 import {addKUPlatformVersion, configureKnownUserHashing, getParameterByName} from "./queueitHelpers";
 import {getIntegrationConfig, tryStoreIntegrationConfig} from "./integrationConfigProvider";
+<<<<<<< Updated upstream
 import jwt from 'next-auth/jwt';
+=======
+import jwt from '@tsndr/cloudflare-worker-jwt';
+>>>>>>> Stashed changes
 import getFlagsForUser, { getVariationValueForFlag } from "./getFlagsForUser";
 
 export default class QueueITRequestResponseHandler {
@@ -58,7 +62,17 @@ export default class QueueITRequestResponseHandler {
             const requestUrl = request.url;
 
             if (idToken) {
-                decodedIdToken = jwt.decode({token: idToken, secret: AUTH_SECRET });
+
+                const isValid = await jwt.verify(idToken, AUTH_SECRET);
+                if (!isValid) {
+                    return this.redirectNull();
+                }
+
+                decodedIdToken = jwt.decode(idToken);
+
+                if (!decodedIdToken) {
+                    return this.redirectNull();
+                }
 
                 const flags = await getFlagsForUser({
                     key: decodedIdToken["sub"],

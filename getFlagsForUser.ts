@@ -1,6 +1,5 @@
-import LaunchDarkly from 'launchdarkly-node-server-sdk';
-
-let ldClient: LaunchDarkly.LDClient;
+const LaunchDarkly = require('launchdarkly-cloudflare-edge-sdk');
+let ldClient: any;
 
 if (LAUNCH_DARKLY_API_KEY) {
   ldClient = LaunchDarkly.init(LAUNCH_DARKLY_API_KEY);
