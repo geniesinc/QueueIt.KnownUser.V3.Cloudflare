@@ -10,11 +10,7 @@ import {KnownUser, Utils} from 'queueit-knownuser';
 import CloudflareHttpContextProvider from './contextProvider';
 import {addKUPlatformVersion, configureKnownUserHashing, getParameterByName} from "./queueitHelpers";
 import {getIntegrationConfig, tryStoreIntegrationConfig} from "./integrationConfigProvider";
-<<<<<<< Updated upstream
-import jwt from 'next-auth/jwt';
-=======
 import jwt from '@tsndr/cloudflare-worker-jwt';
->>>>>>> Stashed changes
 import getFlagsForUser, { getVariationValueForFlag } from "./getFlagsForUser";
 
 export default class QueueITRequestResponseHandler {
