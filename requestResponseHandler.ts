@@ -90,7 +90,7 @@ export default class QueueITRequestResponseHandler {
                 if (!editionFlowId) {
                     return this.redirectNull();
                 }
-                
+
                 const isEditionIncluded = variationValue.includes(editionFlowId);
 
                 if (!(flags.isQueueActive && isEditionIncluded)) {
@@ -303,3 +303,4 @@ function getIdToken(request: any, httpContext: CloudflareHttpContextProvider) {
     const tokenHeaderName = `x-${ID_TOKEN_HEADER_NAME}`;
     return httpContext.getHttpRequest().getHeader(tokenHeaderName);
 }
+

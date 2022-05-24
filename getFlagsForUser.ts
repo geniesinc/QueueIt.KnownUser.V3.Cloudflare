@@ -1,8 +1,14 @@
 const LaunchDarkly = require('launchdarkly-cloudflare-edge-sdk');
+import { getIntegrationConfig } from "./integrationConfigProvider";
+
 let ldClient: any;
+declare var IntegrationConfigKV: string;
 
 if (LAUNCH_DARKLY_API_KEY) {
-  ldClient = LaunchDarkly.init(LAUNCH_DARKLY_API_KEY);
+  getIntegrationConfig(IntegrationConfigKV)
+    .then(integrationConfigJson => {
+      ldClient = LaunchDarkly.init(integrationConfigJson, LAUNCH_DARKLY_API_KEY);
+    });
 }
 
 async function getFlagsForUser({
