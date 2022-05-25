@@ -53,7 +53,7 @@ class RequestProvider implements IHttpRequest {
 
     public getCookieValue(name: string) {
         if (!this._parsedCookieDic) {
-            this._parsedCookieDic = this.__parseCookies(this.getHeader('cookie'));
+            this._parsedCookieDic = this.__parseCookies(this.getHeader('set-cookie'));
         }
         var cookieValue = this._parsedCookieDic[name];
 
@@ -69,13 +69,10 @@ class RequestProvider implements IHttpRequest {
 
     private __parseCookies(cookieValue: string) {
         let parsedCookie = {};
-        cookieValue.split(';').forEach(function (cookie) {
-            if (cookie) {
-                var parts = cookie.split('=');
-                if (parts.length >= 2)
-                    parsedCookie[parts[0].trim()] = parts[1].trim();
-            }
-        });
+        const [cookieName, ...cookieVal] = cookieValue.split('=');
+        parsedCookie = {
+            [cookieName]: cookieVal.join("=")
+        }
         return parsedCookie;
     }
 
