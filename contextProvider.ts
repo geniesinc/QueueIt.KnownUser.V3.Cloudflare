@@ -53,7 +53,7 @@ class RequestProvider implements IHttpRequest {
 
     public getCookieValue(name: string) {
         if (!this._parsedCookieDic) {
-            this._parsedCookieDic = this.__parseCookies(this.getHeader('set-cookie'));
+            this._parsedCookieDic = this.__parseCookies(this.getHeader('x-queueitaccepted'));
         }
         var cookieValue = this._parsedCookieDic[name];
 
