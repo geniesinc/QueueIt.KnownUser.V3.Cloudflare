@@ -2,6 +2,7 @@ const QUEUEIT_FAILED_HEADERNAME = "x-queueit-failed";
 const QUEUEIT_CONNECTOR_EXECUTED_HEADER_NAME = 'x-queueit-connector';
 const SHOULD_IGNORE_OPTIONS_REQUESTS = true;
 const ID_TOKEN_HEADER_NAME = 'id-token';
+const DC_EDITION_QUEUES = "editionqueues"
 
 declare var IntegrationConfigKV: string;
 declare var Response: any;
@@ -11,7 +12,8 @@ import CloudflareHttpContextProvider from './contextProvider';
 import {addKUPlatformVersion, configureKnownUserHashing, getParameterByName} from "./queueitHelpers";
 import {getIntegrationConfig, tryStoreIntegrationConfig} from "./integrationConfigProvider";
 import jwt from '@tsndr/cloudflare-worker-jwt';
-import getFlagsForUser, { getVariationValueForFlag } from "./getFlagsForUser";
+
+const statsig = require('statsig-node');
 
 export default class QueueITRequestResponseHandler {
     private httpContextProvider: CloudflareHttpContextProvider | null;
@@ -57,44 +59,50 @@ export default class QueueITRequestResponseHandler {
             const idToken = getIdToken(request, this.httpContextProvider);
             const requestUrl = request.url;
 
+            try {
+                await statsig.initialize(STATSIG_SECRET_KEY);
+            } catch (e) {
+                console.log("caught error statsig init: ", e);
+            }
+
             if (idToken) {
 
-                const isValid = await jwt.verify(idToken, AUTH_SECRET);
-                if (!isValid) {
-                    return this.redirectNull();
-                }
-
                 decodedIdToken = jwt.decode(idToken);
-
                 if (!decodedIdToken) {
                     return this.redirectNull();
                 }
+                const isValid = await jwt.verify(idToken, AUTH_SECRET);
+                console.log("isValid: ", isValid);
+                // if (!isValid) {
+                //     return this.redirectNull();
+                // }
 
-                const flags = await getFlagsForUser({
-                    key: decodedIdToken["sub"],
-                    email: decodedIdToken["email"],
-                    phoneNumber: decodedIdToken["phone_number"],
-                    ip: request?.ip,
-                });
-
-                const editionQueueEnabledVariationValue = await getVariationValueForFlag({
-                    flag: 'isEditionQueueEnabled',
-                    key: decodedIdToken["sub"],
-                    email: decodedIdToken["email"],
-                    phoneNumber: decodedIdToken["phone_number"],
-                    ip: request?.ip,
-                });
-
-                const variationValue = JSON.parse(editionQueueEnabledVariationValue);
-                const editionFlowId = request.payload.variables.input.editionFlowId;
-                if (!editionFlowId) {
+                // check if id token is expired
+                if (decodedIdToken.payload['exp'] && decodedIdToken.payload['exp'] * 1000 > Date.now()) {
                     return this.redirectNull();
                 }
 
-                const isEditionIncluded = variationValue.includes(editionFlowId);
+                let editionQueues: any;
+                try {
+                    editionQueues = await statsig.getConfig({ 
+                        userID: decodedIdToken.payload['sub'],
+                        email: decodedIdToken.payload['email'],
+                        custom: {
+                            phoneNumber: decodedIdToken.payload['phone_number'],
+                        }
+                    },
+                    DC_EDITION_QUEUES);
+                } catch (e) {
+                    console.log("caught error getting config: ", e);
+                }
+                
+                const body = await request.json();
+                const editionFlowId = body.variables.input.editionFlowID ?? -1;
+                const isEditionIncluded = editionQueues.value.editionFlowIds.includes(editionFlowId);
 
-                if (!(flags.isQueueActive && isEditionIncluded)) {
-                    return this.redirectNull();
+                // skip queue-it validation if edition flow id is not in dynamic config
+                if (!isEditionIncluded) {
+                    return {};
                 }
             }
 
@@ -294,7 +302,7 @@ function lessThanOneHourAgo(date: number): boolean {
 }
 
 function getIdToken(request: any, httpContext: CloudflareHttpContextProvider) {
-    let idToken = getParameterByName(request.ur, ID_TOKEN_HEADER_NAME);
+    let idToken = getParameterByName(request.url, ID_TOKEN_HEADER_NAME);
 
     if (idToken) {
         return idToken;

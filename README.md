@@ -79,3 +79,7 @@ cloudflare distribution.
 Set the env variable `QUEUE_IT_SECRET_KEY` in the cloudflare worker which is the known user secret. This can be retrievd from a Waiting Room > Deployment.  
 Set the env variable `BYPASS_STAGING` to `'true'` to bypass the validation on staging.  
 Set the env variable `BYPASS_PROD` to `'true'` to bypass the validation on prod.  
+
+## Miniflare
+Requires node 16.7.0 to run.  
+nvm use 16.7.0

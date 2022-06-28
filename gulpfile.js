@@ -16,16 +16,17 @@ function bundle(){
             cache: {},
             packageCache: {},
         })
-            .plugin(tsify)
-            .transform(babelify, {
-                global: true,              
-                sourceMaps: true, 
-                ignore: [/\/node_modules\/(?!yaml\/)/],  
-                presets: ["@babel/preset-env"]
-            })
-            .bundle()
-            .pipe(vinylSource("queueitknownuser.bundle.js"))
-            .pipe(dest("./dist"));
+        .ignore("./miniflare.ts")
+        .plugin(tsify)
+        .transform(babelify, {
+            global: true,              
+            sourceMaps: true, 
+            ignore: [/\/node_modules\/(?!yaml\/)/],  
+            presets: ["es2015"]
+        })
+        .bundle()
+        .pipe(vinylSource("queueitknownuser.bundle.js"))
+        .pipe(dest("./dist"));
 }
 
 function makePackage() {

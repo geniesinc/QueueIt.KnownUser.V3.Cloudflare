@@ -1,12 +1,15 @@
 'use strict'
 
+import QueueITRequestResponseHandler from "./requestResponseHandler";
+
 declare global {
   const LAUNCH_DARKLY_API_KEY: string
   const QUEUE_IT_SECRET_KEY: string
   const BYPASS_STAGING: string
   const BYPASS_PROD: string
-  const JWT_SIGNING_PRIVATE_KEY: string
+  const JWT_SIGNING_KEY: string
   const AUTH_SECRET: string;
+  const STATSIG_SECRET_KEY: string;
 }
 
 const QUEUEIT_CUSTOMERID = "genies";
@@ -14,14 +17,13 @@ const QUEUEIT_SECRETKEY = QUEUE_IT_SECRET_KEY ?? "";
 
 // Set to true, if you have any trigger(s) containing experimental 'RequestBody' condition.
 const READ_REQUEST_BODY = false;
-import QueueITRequestResponseHandler from "./requestResponseHandler";
 
 declare var addEventListener: any;
 declare var fetch: any;
 
 addEventListener('fetch', (event: any) => {
-  event.respondWith(handleRequest(event))
-})
+  event.respondWith(handleRequest(event));
+});
 
 const handleRequest = async function (event: any) {
   const {request} = event;
