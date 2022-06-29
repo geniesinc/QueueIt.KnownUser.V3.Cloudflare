@@ -7,9 +7,9 @@ declare global {
   const QUEUE_IT_SECRET_KEY: string
   const BYPASS_STAGING: string
   const BYPASS_PROD: string
-  const JWT_SIGNING_KEY: string
-  const AUTH_SECRET: string;
   const STATSIG_SECRET_KEY: string;
+  const USER_POOL_ID: string;
+  const CognitoJWK: any;
 }
 
 const QUEUEIT_CUSTOMERID = "genies";

@@ -1,6 +1,3 @@
-declare var USER_POOL_ID: string;
-declare var CognitoJWK: any;
-
 const jwt = require('jsonwebtoken');
 const jwkToPem = require('jwk-to-pem');
 
