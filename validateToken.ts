@@ -1,11 +1,10 @@
 declare var USER_POOL_ID: string;
- 
+declare var CognitoJWK: any;
+
 const jwt = require('jsonwebtoken');
 const jwkToPem = require('jwk-to-pem');
-const fetch = require('node-fetch');
- 
-const pool_region = USER_POOL_ID.split('_')[0];
- 
+
+
 const verifyToken = async (token: any, pem: any): Promise<boolean> => {
  return new Promise((resolve) => {
    jwt.verify(token, pem, function(err: any, payload: any) {
@@ -19,8 +18,8 @@ const verifyToken = async (token: any, pem: any): Promise<boolean> => {
 }
  
 export const validateToken = async (token: any): Promise<boolean> => {
-  const response = await fetch(`https://cognito-idp.${pool_region}.amazonaws.com/${USER_POOL_ID}/.well-known/jwks.json`);
-  const { keys } = await response.json();
+  const jwk = await CognitoJWK.get(USER_POOL_ID, { type: "json" });
+  const { keys } = jwk;
 
   let pems = {};
   for (let i = 0; i < keys.length; i++) {

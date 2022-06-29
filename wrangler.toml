@@ -8,5 +8,5 @@ compatibility_date = "2022-04-21"
 account_id = 'b4338a7810e7ca32677c67cdc69ba9ba'
 kv_namespaces = [
     { binding = 'IntegrationConfigKV', id = '7771db17323b47489faa9dc1bf627160' },
-    { binding = 'MY_KV', id = '3e2b65442b6d4306bbd12c7aec58c09b' }
+    { binding = 'CognitoJWK', id = '1bcc393909f34166bfeb8eb0ec1d2e29' }
 ]

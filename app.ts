@@ -25,17 +25,26 @@ addEventListener('fetch', (event: any) => {
   event.respondWith(handleRequest(event));
 });
 
+const returnPassthrough = async (handler: any, request: any) => {
+  const response = await fetch(request);
+  return await handler.onClientResponse(response);
+};
+
 const handleRequest = async function (event: any) {
   const {request} = event;
   const handler = new QueueITRequestResponseHandler(QUEUEIT_CUSTOMERID, QUEUEIT_SECRETKEY, READ_REQUEST_BODY);
+
+  // exit early for other urls
+  if (!request.url.includes('reserveNFT')) {
+    return await returnPassthrough(handler, request);
+  }
 
   // exit early based on env variables
   if (
     (request.url.includes('staging') && BYPASS_STAGING === 'true') ||
     (!request.url.includes('staging') && BYPASS_PROD === 'true')
   ) {
-    const response = await fetch(request);
-    return await handler.onClientResponse(response);
+    return await returnPassthrough(handler, request);
   }
 
 
@@ -45,7 +54,6 @@ const handleRequest = async function (event: any) {
     return await handler.onClientResponse(queueitResponse);
   } else {
     //call backend
-    const response = await fetch(request);
-    return await handler.onClientResponse(response);
+    return await returnPassthrough(handler, request);
   }
 }

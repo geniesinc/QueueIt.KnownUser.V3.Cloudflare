@@ -2,7 +2,7 @@ const QUEUEIT_FAILED_HEADERNAME = "x-queueit-failed";
 const QUEUEIT_CONNECTOR_EXECUTED_HEADER_NAME = 'x-queueit-connector';
 const SHOULD_IGNORE_OPTIONS_REQUESTS = true;
 const ID_TOKEN_HEADER_NAME = 'id-token';
-const DC_EDITION_QUEUES = "editionqueues"
+const DC_EDITION_QUEUES = 'editionqueues';
 
 declare var IntegrationConfigKV: string;
 declare var Response: any;
@@ -14,7 +14,7 @@ import {getIntegrationConfig, tryStoreIntegrationConfig} from "./integrationConf
 import { validateToken } from './validateToken';
 
 const jwt = require('jsonwebtoken');
-const statsig = require('statsig-node');
+
 
 export default class QueueITRequestResponseHandler {
     private httpContextProvider: CloudflareHttpContextProvider | null;
@@ -58,30 +58,37 @@ export default class QueueITRequestResponseHandler {
             const idToken = getIdToken(request, this.httpContextProvider);
             const requestUrl = request.url;
 
-            try {
-                await statsig.initialize(STATSIG_SECRET_KEY);
-            } catch (e) {
-                console.log("caught error statsig init: ", e);
+            // exit early if no queueitToken is present for this request
+            if (!queueitToken && requestUrl.includes("reserveNFT")) {
+                return this.redirectNull();
             }
 
-            if (idToken) {
+            // check statsig config only for reserveNFT
+            if (idToken && queueitToken && requestUrl.includes("reserveNFT")) {
+
+                const statsig = require('statsig-node');
+                try {
+                    await statsig.initialize(STATSIG_SECRET_KEY);
+                } catch (e) {
+                    console.log("caught error statsig init: ", e);
+                }
 
                 let decodedIdToken = jwt.decode(idToken, {complete: true});
-                console.log('decodedIdToken: ', decodedIdToken);
                 if (!decodedIdToken) {
+                    console.log("decodedIdToken is null");
                     return this.redirectNull();
                 }
 
                 // check if id token is expired
                 if (decodedIdToken.payload['exp'] &&
                     decodedIdToken.payload['exp'] * 1000 < Date.now()) {
-
                     console.log("expired token");
                     return this.redirectNull();
                 }
 
                 const isValid = await validateToken(idToken);
                 if (!isValid) {
+                    console.log("idToken is not valid");
                     return this.redirectNull();
                 }
 
@@ -95,6 +102,7 @@ export default class QueueITRequestResponseHandler {
                         }
                     },
                     DC_EDITION_QUEUES);
+                    await statsig.shutdown();
                 } catch (e) {
                     console.log("caught error getting config: ", e);
                 }
@@ -105,15 +113,13 @@ export default class QueueITRequestResponseHandler {
 
                 // skip queue-it validation if edition flow id is not in dynamic config
                 if (!isEditionIncluded) {
-                    return {};
+                    let response = new Response(null, {status: 200});
+                    this.sendNoCacheHeaders = true;
+                    return response;
                 }
             }
 
             const integrationConfigJson = await getIntegrationConfig(IntegrationConfigKV) || "";
-
-            if (!queueitToken && requestUrl.includes("reserveNFT")) {
-                return this.redirectNull();
-            }
 
             const requestUrlWithoutToken = requestUrl.replace(new RegExp("([\?&])(" + KnownUser.QueueITTokenKey + "=[^&]*)", 'i'), "");
 
@@ -174,6 +180,7 @@ export default class QueueITRequestResponseHandler {
             }
 
         } catch (e) {
+            console.log("caught exception: ", e);
             // There was an error validationg the request
             // Use your own logging framework to log the Exception
             if (console && console.log) {
