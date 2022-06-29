@@ -11,8 +11,9 @@ import {KnownUser, Utils} from 'queueit-knownuser';
 import CloudflareHttpContextProvider from './contextProvider';
 import {addKUPlatformVersion, configureKnownUserHashing, getParameterByName} from "./queueitHelpers";
 import {getIntegrationConfig, tryStoreIntegrationConfig} from "./integrationConfigProvider";
-import jwt from '@tsndr/cloudflare-worker-jwt';
+import { validateToken } from './validateToken';
 
+const jwt = require('jsonwebtoken');
 const statsig = require('statsig-node');
 
 export default class QueueITRequestResponseHandler {
@@ -53,8 +54,6 @@ export default class QueueITRequestResponseHandler {
             }
             this.httpContextProvider = new CloudflareHttpContextProvider(request, bodyText);
 
-            let decodedIdToken;
-
             const queueitToken = getQueueItToken(request, this.httpContextProvider);
             const idToken = getIdToken(request, this.httpContextProvider);
             const requestUrl = request.url;
@@ -67,18 +66,22 @@ export default class QueueITRequestResponseHandler {
 
             if (idToken) {
 
-                decodedIdToken = jwt.decode(idToken);
+                let decodedIdToken = jwt.decode(idToken, {complete: true});
+                console.log('decodedIdToken: ', decodedIdToken);
                 if (!decodedIdToken) {
                     return this.redirectNull();
                 }
-                const isValid = await jwt.verify(idToken, AUTH_SECRET);
-                console.log("isValid: ", isValid);
-                // if (!isValid) {
-                //     return this.redirectNull();
-                // }
 
                 // check if id token is expired
-                if (decodedIdToken.payload['exp'] && decodedIdToken.payload['exp'] * 1000 > Date.now()) {
+                if (decodedIdToken.payload['exp'] &&
+                    decodedIdToken.payload['exp'] * 1000 < Date.now()) {
+
+                    console.log("expired token");
+                    return this.redirectNull();
+                }
+
+                const isValid = await validateToken(idToken);
+                if (!isValid) {
                     return this.redirectNull();
                 }
 
