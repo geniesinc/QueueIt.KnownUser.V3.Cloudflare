@@ -4,6 +4,7 @@ const tsify = require("tsify");
 const jsonModify = require('gulp-json-modify');
 const vinylSource = require('vinyl-source-stream');
 const browserify = require('browserify');
+const babelify = require('babelify');
 const tar = require('gulp-tar');
 const gzip = require('gulp-gzip');
 
@@ -15,10 +16,17 @@ function bundle(){
             cache: {},
             packageCache: {},
         })
-            .plugin(tsify)
-            .bundle()
-            .pipe(vinylSource("queueitknownuser.bundle.js"))
-            .pipe(dest("./dist"));
+        .ignore("./miniflare.ts")
+        .plugin(tsify)
+        .transform(babelify, {
+            global: true,              
+            sourceMaps: true, 
+            ignore: [/\/node_modules\/(?!yaml\/)/],  
+            presets: ["es2015"]
+        })
+        .bundle()
+        .pipe(vinylSource("queueitknownuser.bundle.js"))
+        .pipe(dest("./dist"));
 }
 
 function makePackage() {
