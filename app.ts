@@ -10,6 +10,7 @@ declare global {
   const STATSIG_SECRET_KEY: string;
   const USER_POOL_ID: string;
   const CognitoJWK: any;
+  const STATSIG_ENVIRONMENT_TIER: string;
 }
 
 const QUEUEIT_CUSTOMERID = "genies";
