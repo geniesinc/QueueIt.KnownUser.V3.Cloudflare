@@ -12,7 +12,10 @@ export const checkWaitingRoom = async (request: any, queueitToken: string, idTok
   if (idToken && !queueitToken && requestUrl.includes("reserveNFT")) {
       const statsig = require('statsig-node');
       try {
-          await statsig.initialize(STATSIG_SECRET_KEY);
+          await statsig.initialize(
+            STATSIG_SECRET_KEY,
+            { environment: { tier: STATSIG_ENVIRONMENT_TIER  }}
+          );
       } catch (e) {
           console.log("caught error statsig init: ", e);
       }
